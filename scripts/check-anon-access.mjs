@@ -23,23 +23,32 @@ const relations = [
   "project_progress",
 ];
 
+/**
+ * «закрыто» — Postgres отказал в доступе (код 42501) или вернул пустой список.
+ * Любой другой ответ — например, 401 из-за неверного ключа или 404 из-за
+ * неприменённой миграции — значит, что проверить не удалось.
+ */
+async function classify(res) {
+  const body = await res.text();
+  if (res.ok && body.trim() === "[]") return "закрыто";
+  try {
+    if (JSON.parse(body).code === "42501") return "закрыто";
+  } catch {
+    // не JSON — разберём ниже как непроверенное
+  }
+  if (res.ok) return "ОТКРЫТО";
+  return `НЕ ПРОВЕРЕНО: ${body.slice(0, 120)}`;
+}
+
 let failed = false;
 
 for (const name of relations) {
   const res = await fetch(`${url}/rest/v1/${name}?select=*&limit=1`, {
     headers,
   });
-  const body = await res.text();
-  // Доступ закрыт, если в нём отказано или вернулся пустой список.
-  // 404 и прочие ошибки — не «закрыто», а «не проверено» (например, миграция не применена).
-  const closed =
-    res.status === 401 ||
-    res.status === 403 ||
-    (res.ok && body.trim() === "[]");
-  console.log(
-    `${closed ? "закрыто" : "ОТКРЫТО"}  ${name}  (HTTP ${res.status})`,
-  );
-  if (!closed) failed = true;
+  const verdict = await classify(res);
+  console.log(`${verdict}  ${name}  (HTTP ${res.status})`);
+  if (verdict !== "закрыто") failed = true;
 }
 
 const rpc = await fetch(`${url}/rest/v1/rpc/complete_recurring_task`, {
@@ -50,14 +59,12 @@ const rpc = await fetch(`${url}/rest/v1/rpc/complete_recurring_task`, {
     p_next_due: "2099-01-01",
   }),
 });
-const rpcClosed = rpc.status === 401 || rpc.status === 403;
-console.log(
-  `${rpcClosed ? "закрыто" : "ОТКРЫТО"}  rpc/complete_recurring_task  (HTTP ${rpc.status})`,
-);
-if (!rpcClosed) failed = true;
+const rpcVerdict = await classify(rpc);
+console.log(`${rpcVerdict}  rpc/complete_recurring_task  (HTTP ${rpc.status})`);
+if (rpcVerdict !== "закрыто") failed = true;
 
 if (failed) {
-  console.error("\nБез входа доступно то, что должно быть закрыто.");
+  console.error("\nПроверка не пройдена: см. строки выше.");
   process.exit(1);
 }
 console.log("\nБез входа данные недоступны.");
