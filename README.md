@@ -5,7 +5,36 @@
 
 Полное ТЗ и план работы: [docs/SPEC.md](docs/SPEC.md).
 
-> Черновик. Полная инструкция по настройке Supabase появится на этапе 2, финальная версия README — на этапе 9.
+> Черновик, финальная версия README — на этапе 9.
+
+## Supabase
+
+Работаем с облачным проектом; локальный Supabase не нужен. CLI стоит в dev-зависимостях и запускается через `npx supabase`.
+
+1. Создайте проект на [supabase.com](https://supabase.com) и сохраните пароль базы в менеджере паролей.
+2. Войдите в CLI и привяжите проект (`<ref>` — часть адреса проекта `https://supabase.com/dashboard/project/<ref>`):
+
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref <ref>
+   ```
+
+3. Примените миграции и проверьте схему:
+
+   ```bash
+   npm run db:push
+   npm run db:test
+   ```
+
+   `db:test` выполняет [supabase/tests/database.test.sql](supabase/tests/database.test.sql) в транзакции с откатом: проверяет RLS, прогресс разделов и проектов, триггеры и RPC. В базе после него ничего не остаётся.
+
+4. Сгенерируйте типы TypeScript: `npm run db:types`.
+5. Project Settings → API: скопируйте Project URL и publishable (anon) ключ в `.env.local`.
+6. Убедитесь, что без входа данные не видны: `npm run db:check-anon`.
+7. Authentication → Users: создайте своего пользователя (email и пароль).
+8. Authentication → Sign In / Providers: отключите регистрацию новых пользователей.
+
+Схема меняется только новыми файлами в `supabase/migrations/`; уже применённые миграции не редактируются.
 
 ## Локальная разработка
 
