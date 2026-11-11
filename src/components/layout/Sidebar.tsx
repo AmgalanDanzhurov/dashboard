@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense } from "react";
 
+import { SidebarAreas } from "@/features/areas/components/SidebarAreas";
 import { SignOutButton } from "@/features/auth/components/SignOutButton";
 import { cn } from "@/lib/utils";
 
@@ -39,8 +41,12 @@ export function Sidebar() {
           })}
         </ul>
       </nav>
-      {/* Список разделов со ссылками появится на этапе 4, когда будут данные. */}
-      <div className="mt-auto">
+      <div className="-mx-3 min-h-0 flex-1 overflow-y-auto px-3">
+        <Suspense>
+          <SidebarAreas />
+        </Suspense>
+      </div>
+      <div>
         <SignOutButton className="w-full" />
       </div>
     </aside>
