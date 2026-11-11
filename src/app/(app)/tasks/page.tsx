@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { PagePlaceholder } from "@/components/layout/PagePlaceholder";
+import { TasksView } from "@/features/tasks/components/TasksView";
 
 export const metadata: Metadata = { title: "Задачи" };
 
+// Фильтры живут в адресе (useSearchParams), поэтому нужен <Suspense>.
 export default function TasksPage() {
   return (
-    <PagePlaceholder
-      title="Задачи"
-      description="Все задачи, включая «Входящие», фильтры в адресе и группировка по сроку — этап 5."
-    />
+    <Suspense>
+      <TasksView />
+    </Suspense>
   );
 }

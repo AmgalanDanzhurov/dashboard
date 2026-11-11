@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAreas } from "@/features/areas/hooks";
+import { LocationTasks } from "@/features/tasks/components/LocationTasks";
 import { formatProgress, progressOf } from "@/lib/domain/progress";
 import { routes } from "@/lib/routes";
 
@@ -156,14 +157,14 @@ export function ProjectView() {
         </div>
       </header>
 
-      <section aria-labelledby="project-tasks" className="flex flex-col gap-2">
+      <section aria-labelledby="project-tasks" className="flex flex-col gap-4">
         <h2 id="project-tasks" className="text-lg font-semibold">
           Задачи
         </h2>
-        <p className="text-sm text-muted-foreground">
-          Список задач и быстрое добавление появятся на этапе 5, burndown — на
-          этапе 8.
-        </p>
+        <LocationTasks
+          location={{ kind: "project", projectId: project.id }}
+          emptyText="В проекте пока нет открытых задач."
+        />
       </section>
     </div>
   );

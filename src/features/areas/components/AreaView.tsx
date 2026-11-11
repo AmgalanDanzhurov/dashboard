@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { ProjectCard } from "@/features/projects/components/ProjectCard";
 import { ProjectFormDialog } from "@/features/projects/components/ProjectFormDialog";
 import { useProjectProgress, useProjects } from "@/features/projects/hooks";
+import { LocationTasks } from "@/features/tasks/components/LocationTasks";
 import { formatProgress, progressOf } from "@/lib/domain/progress";
 import { routes } from "@/lib/routes";
 
@@ -159,13 +160,14 @@ export function AreaView() {
         </div>
       </section>
 
-      <section aria-labelledby="area-tasks" className="flex flex-col gap-2">
+      <section aria-labelledby="area-tasks" className="flex flex-col gap-4">
         <h2 id="area-tasks" className="text-lg font-semibold">
           Задачи без проекта
         </h2>
-        <p className="text-sm text-muted-foreground">
-          Список задач и быстрое добавление появятся на этапе 5.
-        </p>
+        <LocationTasks
+          location={{ kind: "area", areaId: area.id }}
+          emptyText="Здесь мелкие дела раздела, которым не нужен отдельный проект."
+        />
       </section>
 
       <ProjectFormDialog

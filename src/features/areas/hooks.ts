@@ -105,6 +105,7 @@ export function useDeleteArea() {
       // вызывающий код должен успеть уйти со страницы удалённого раздела.
       void queryClient.invalidateQueries({ queryKey: queryKeys.areas.all });
       void queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
     },
     onError,
   });

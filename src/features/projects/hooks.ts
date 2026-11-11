@@ -53,6 +53,8 @@ function useInvalidateProjectsAndAreas() {
     Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.projects.all }),
       queryClient.invalidateQueries({ queryKey: queryKeys.areas.progress() }),
+      // Удаление проекта каскадно удаляет его задачи.
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all }),
     ]);
 }
 
