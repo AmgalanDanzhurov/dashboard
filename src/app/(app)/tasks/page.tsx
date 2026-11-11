@@ -3,7 +3,8 @@ import { Suspense } from "react";
 
 import { TasksView } from "@/features/tasks/components/TasksView";
 
-export const metadata: Metadata = { title: "Задачи" };
+// absolute: иначе шаблон из layout даст «Задачи · Задачи».
+export const metadata: Metadata = { title: { absolute: "Задачи" } };
 
 // Фильтры живут в адресе (useSearchParams), поэтому нужен <Suspense>.
 export default function TasksPage() {

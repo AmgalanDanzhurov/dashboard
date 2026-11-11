@@ -60,3 +60,12 @@ export function dueLabel(date: ISODate, today: ISODate): string {
   if (days === -1) return "Вчера";
   return formatDue(date, today);
 }
+
+/**
+ * Календарный день метки времени из базы (created_at, completed_at) в
+ * часовом поясе браузера. Нельзя брать первые 10 символов строки: это день
+ * по UTC, и вечерние задачи «уезжают» на соседний день.
+ */
+export function localDateOf(timestamp: string): ISODate {
+  return toISODate(new Date(timestamp));
+}

@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { addDaysISO, daysFrom, dueLabel, formatDue, toISODate } from "./dates";
+import {
+  addDaysISO,
+  daysFrom,
+  dueLabel,
+  formatDue,
+  localDateOf,
+  toISODate,
+} from "./dates";
 
 describe("dates", () => {
   it("toISODate берёт локальную дату, а не UTC", () => {
@@ -54,5 +61,15 @@ describe("formatDue — все месяцы", () => {
       "1 ноя",
       "1 дек",
     ]);
+  });
+});
+
+describe("localDateOf", () => {
+  it("берёт день в местном поясе, а не в UTC", () => {
+    // Полночь с половиной по местному времени: в UTC это может быть ещё вчера.
+    const ts = new Date(2026, 10, 12, 0, 30).toISOString();
+    expect(localDateOf(ts)).toBe("2026-11-12");
+    const late = new Date(2026, 10, 12, 23, 50).toISOString();
+    expect(localDateOf(late)).toBe("2026-11-12");
   });
 });

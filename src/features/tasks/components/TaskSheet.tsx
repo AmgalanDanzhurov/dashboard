@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { TagToggleList } from "@/features/tags/components/TagToggleList";
-import { formatLongDate } from "@/lib/domain/dates";
+import { formatLongDate, localDateOf } from "@/lib/domain/dates";
 import {
   decodeLocation,
   encodeLocation,
@@ -124,8 +124,8 @@ function TaskForm({
         <SheetTitle>Задача</SheetTitle>
         <SheetDescription>
           {task.completed_at
-            ? `Выполнена ${formatLongDate(task.completed_at.slice(0, 10))}`
-            : `Создана ${formatLongDate(task.created_at.slice(0, 10))}`}
+            ? `Выполнена ${formatLongDate(localDateOf(task.completed_at))}`
+            : `Создана ${formatLongDate(localDateOf(task.created_at))}`}
         </SheetDescription>
       </SheetHeader>
 
