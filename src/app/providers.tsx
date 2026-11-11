@@ -2,7 +2,10 @@
 
 import { ThemeProvider } from "next-themes";
 
-// Здесь же на следующих этапах появятся QueryClientProvider и AuthProvider.
+import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/features/auth/AuthProvider";
+
+// QueryClientProvider появится на этапе 4 вместе с первыми запросами данных.
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider
@@ -11,7 +14,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      {children}
+      <AuthProvider>{children}</AuthProvider>
+      <Toaster richColors closeButton />
     </ThemeProvider>
   );
 }

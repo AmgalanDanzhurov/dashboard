@@ -1,37 +1,16 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Suspense } from "react";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { routes } from "@/lib/routes";
+import { LoginView } from "@/features/auth/components/LoginView";
 
 export const metadata: Metadata = { title: "Вход" };
 
-// Страница входа живёт вне группы (app), поэтому без боковой панели.
+// Страница входа живёт вне группы (app): без боковой панели и без AuthGuard.
+// LoginView читает ?next= через useSearchParams, поэтому нужен <Suspense>.
 export default function LoginPage() {
   return (
-    <main className="flex min-h-dvh items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Вход</CardTitle>
-          <CardDescription>
-            Форма входа по email и паролю появится на этапе 3.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Link
-            href={routes.dashboard}
-            className="text-sm underline underline-offset-4"
-          >
-            Перейти на дашборд
-          </Link>
-        </CardContent>
-      </Card>
-    </main>
+    <Suspense>
+      <LoginView />
+    </Suspense>
   );
 }

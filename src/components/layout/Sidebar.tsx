@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { SignOutButton } from "@/features/auth/components/SignOutButton";
 import { cn } from "@/lib/utils";
 
 import { navItems } from "./nav";
@@ -39,6 +40,9 @@ export function Sidebar() {
         </ul>
       </nav>
       {/* Список разделов со ссылками появится на этапе 4, когда будут данные. */}
+      <div className="mt-auto">
+        <SignOutButton className="w-full" />
+      </div>
     </aside>
   );
 }
