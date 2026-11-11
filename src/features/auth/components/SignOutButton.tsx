@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -14,12 +15,15 @@ import { signOut } from "../api";
 
 export function SignOutButton({ className }: { className?: string }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [pending, setPending] = useState(false);
 
   async function handleClick() {
     setPending(true);
     try {
       await signOut();
+      // Кэш запросов хранит данные аккаунта — после выхода он не нужен.
+      queryClient.clear();
       // Сразу на вход, без ?next=: после выхода возвращаться некуда.
       router.replace(routes.login);
     } catch (error) {
