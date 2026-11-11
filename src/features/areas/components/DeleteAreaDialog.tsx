@@ -47,8 +47,13 @@ export function DeleteAreaDialog({
       confirmLabel="Удалить раздел"
       // Не даём удалить, пока пользователь не увидел, что именно удалится.
       disabled={!contents.data || deleteArea.isPending}
+      // mutateAsync, а не mutate(…, { onSuccess }): колбэк mutate не вызовется,
+      // если меню с диалогом успеет размонтироваться.
       onConfirm={() =>
-        deleteArea.mutate(area, { onSuccess: () => onDeleted?.() })
+        void deleteArea
+          .mutateAsync(area)
+          .then(() => onDeleted?.())
+          .catch(() => undefined)
       }
     />
   );

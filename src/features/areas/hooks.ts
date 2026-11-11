@@ -99,13 +99,12 @@ export function useDeleteArea() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (area: Area) => deleteArea(area.id),
-    onSuccess: async (_data, area) => {
+    onSuccess: (_data, area) => {
       toast.success(`Раздел «${area.name}» удалён`);
-      // Вместе с разделом каскадно удалились его проекты.
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.areas.all }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.projects.all }),
-      ]);
+      // Вместе с разделом каскадно удалились его проекты. Не ждём обновления:
+      // вызывающий код должен успеть уйти со страницы удалённого раздела.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.areas.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
     },
     onError,
   });

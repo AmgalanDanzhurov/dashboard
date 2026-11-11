@@ -110,9 +110,12 @@ export function AreaView() {
             label={`Прогресс раздела «${area.name}»`}
           />
           <div className="flex flex-col gap-1 text-sm">
-            <span className="font-medium tabular-nums">
-              {formatProgress(progress)}
-            </span>
+            {/* «Нет задач» уже написано в кольце — не повторяем. */}
+            {progress.total > 0 ? (
+              <span className="font-medium tabular-nums">
+                {formatProgress(progress)}
+              </span>
+            ) : null}
             <span className="text-muted-foreground">
               Задачи раздела и его активных проектов, без повторяющихся
             </span>

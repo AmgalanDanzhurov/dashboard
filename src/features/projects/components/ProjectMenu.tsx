@@ -134,8 +134,13 @@ function DeleteProjectDialog({
       description={description}
       confirmLabel="Удалить проект"
       disabled={count.data === undefined || deleteProject.isPending}
+      // mutateAsync, а не mutate(…, { onSuccess }): колбэк mutate не вызовется,
+      // если меню с диалогом успеет размонтироваться.
       onConfirm={() =>
-        deleteProject.mutate(project, { onSuccess: () => onDeleted?.() })
+        void deleteProject
+          .mutateAsync(project)
+          .then(() => onDeleted?.())
+          .catch(() => undefined)
       }
     />
   );

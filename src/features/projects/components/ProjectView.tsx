@@ -147,9 +147,12 @@ export function ProjectView() {
             color={project.color}
             label={`Прогресс проекта «${project.name}»`}
           />
-          <span className="text-sm font-medium tabular-nums">
-            {formatProgress(progress)}
-          </span>
+          {/* «Нет задач» уже написано в кольце — не повторяем. */}
+          {progress.total > 0 ? (
+            <span className="text-sm font-medium tabular-nums">
+              {formatProgress(progress)}
+            </span>
+          ) : null}
         </div>
       </header>
 

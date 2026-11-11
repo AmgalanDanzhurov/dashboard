@@ -109,7 +109,8 @@ export function useDeleteProject() {
     mutationFn: (project: Project) => deleteProject(project.id),
     onSuccess: (_data, project) => {
       toast.success(`Проект «${project.name}» удалён`);
-      return invalidate();
+      // Не ждём обновления: вызывающий код должен успеть уйти со страницы проекта.
+      void invalidate();
     },
     onError,
   });
