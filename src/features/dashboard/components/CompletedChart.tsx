@@ -97,23 +97,27 @@ export function CompletedChart({
       </ChartContainer>
 
       {/* Те же данные для скринридера: график выше — только картинка. */}
-      <table className="sr-only">
-        <caption>Выполнено задач по дням</caption>
-        <thead>
-          <tr>
-            <th scope="col">День</th>
-            <th scope="col">Выполнено</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((d) => (
-            <tr key={d.date}>
-              <td>{d.label}</td>
-              <td>{d.count}</td>
+      {/* sr-only на обёртке: у самой таблицы height: 1px не работает —
+          таблица растягивается под строки и удлиняет страницу. */}
+      <div className="sr-only">
+        <table>
+          <caption>Выполнено задач по дням</caption>
+          <thead>
+            <tr>
+              <th scope="col">День</th>
+              <th scope="col">Выполнено</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.map((d) => (
+              <tr key={d.date}>
+                <td>{d.label}</td>
+                <td>{d.count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

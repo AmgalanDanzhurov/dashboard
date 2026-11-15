@@ -82,23 +82,27 @@ export function BurndownChart({ points, today }: Props) {
           </span>
         </p>
       ) : null}
-      <table className="sr-only">
-        <caption>Открытые задачи на конец дня</caption>
-        <thead>
-          <tr>
-            <th scope="col">День</th>
-            <th scope="col">Открыто</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((d) => (
-            <tr key={d.date}>
-              <td>{d.label}</td>
-              <td>{d.open}</td>
+      {/* sr-only на обёртке: у самой таблицы height: 1px не работает —
+          таблица растягивается под строки и удлиняет страницу. */}
+      <div className="sr-only">
+        <table>
+          <caption>Открытые задачи на конец дня</caption>
+          <thead>
+            <tr>
+              <th scope="col">День</th>
+              <th scope="col">Открыто</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.map((d) => (
+              <tr key={d.date}>
+                <td>{d.label}</td>
+                <td>{d.open}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
