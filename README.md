@@ -1,83 +1,127 @@
 # Дашборд задач
 
-Личный дашборд задач: разделы → проекты → задачи, прогресс по количеству выполненных задач, графики.
-Статический сайт на Next.js, публикуется на GitHub Pages; данные и вход — Supabase.
+Личный дашборд задач. Задачи живут в иерархии «разделы → проекты → задачи», прогресс считается по числу выполненных задач, а дашборд за пару секунд отвечает на вопрос «как у меня дела».
 
-Полное ТЗ и план работы: [docs/SPEC.md](docs/SPEC.md).
+Статический сайт на Next.js публикуется на GitHub Pages; данные и вход — Supabase (Postgres, Auth, RLS). Полное ТЗ и план работы: [docs/SPEC.md](docs/SPEC.md).
 
-> Черновик, финальная версия README — на этапе 9.
+## Что умеет
 
-## Supabase
+- **Разделы, проекты, задачи.** Задача лежит в проекте, прямо в разделе или во «Входящих». Проекты можно архивировать.
+- **Задачи:** статус, приоритет, срок, теги, описание; быстрое добавление одной строкой; фильтры и сортировка, которые сохраняются в адресе.
+- **Повторяющиеся задачи:** каждый день, каждые N дней, по дням недели, каждый месяц. При выполнении сразу создаётся следующий экземпляр.
+- **Дашборд:** KPI, прогресс по разделам и проектам, выполненное за 14 дней, статусы, ближайшие сроки.
+- **Статистика:** период 7 / 30 / 90 дней, разбивки по разделам, тегам и приоритетам, burndown проекта.
+- Светлая и тёмная тема, вёрстка для телефона, демо-данные для первого знакомства.
 
-Работаем с облачным проектом; локальный Supabase не нужен. CLI стоит в dev-зависимостях и запускается через `npx supabase`.
+## Стек
+
+Next.js 16 (App Router, статический экспорт) · TypeScript strict · Tailwind CSS 4 · shadcn/ui · Recharts · TanStack Query · react-hook-form + zod · date-fns · Supabase · Vitest · GitHub Actions.
+
+## Устройство кода
+
+```
+src/
+  app/                 маршруты: только компоновка страниц
+  components/          общий UI: shadcn/ui, оболочка, прогресс, графики
+  features/<фича>/
+    api.ts             единственное место вызовов Supabase
+    hooks.ts           TanStack Query: кэш, мутации, инвалидация
+    components/        UI фичи
+  lib/
+    domain/            чистые функции + тесты: прогресс, повторы, фильтры, статистика
+    supabase/          клиент и сгенерированные типы
+    query/             QueryClient и ключи запросов
+supabase/
+  migrations/          схема БД — меняется только новыми файлами
+  tests/               SQL-тест схемы (в транзакции с откатом)
+```
+
+Всё, что считает (прогресс, следующий срок повтора, группировка по срокам, статистика), — чистые функции в `src/lib/domain` с явным параметром «сегодня» и тестами. Даты везде — календарные дни в часовом поясе браузера.
+
+Безопасность данных обеспечивает RLS в базе: каждая строка принадлежит пользователю, роль `anon` не видит ничего. Проверка входа в браузере (`AuthGuard`) — удобство, а не защита. В сборку попадает только публичный ключ Supabase.
+
+## Первый запуск
+
+Нужен Node.js 24 или новее.
+
+### 1. Supabase
 
 1. Создайте проект на [supabase.com](https://supabase.com) и сохраните пароль базы в менеджере паролей.
-2. Войдите в CLI и привяжите проект (`<ref>` — часть адреса проекта `https://supabase.com/dashboard/project/<ref>`):
+2. Примените миграции. Через CLI (он стоит в dev-зависимостях):
 
    ```bash
    npx supabase login
    npx supabase link --project-ref <ref>
-   ```
-
-3. Примените миграции и проверьте схему:
-
-   ```bash
    npm run db:push
-   npm run db:test
    ```
 
-   `db:test` выполняет [supabase/tests/database.test.sql](supabase/tests/database.test.sql) в транзакции с откатом: проверяет RLS, прогресс разделов и проектов, триггеры и RPC. В базе после него ничего не остаётся.
+   `<ref>` — часть адреса проекта `https://supabase.com/dashboard/project/<ref>`. Миграции можно применять и через Supabase MCP.
 
-4. Сгенерируйте типы TypeScript: `npm run db:types`.
-5. Project Settings → API: скопируйте Project URL и publishable (anon) ключ в `.env.local`.
-6. Убедитесь, что без входа данные не видны: `npm run db:check-anon`.
-7. Authentication → Users: создайте своего пользователя (email и пароль).
-8. Authentication → Sign In / Providers: отключите регистрацию новых пользователей.
+3. Проверьте схему: `npm run db:test`. Скрипт выполняет [supabase/tests/database.test.sql](supabase/tests/database.test.sql) в транзакции с откатом и проверяет RLS, прогресс, триггеры и RPC; в базе после него ничего не остаётся.
+4. Authentication → Users → **Add user**: создайте своего пользователя (email и пароль, отметьте Auto Confirm).
+5. Authentication → Sign In / Providers: выключите **Allow new users to sign up**.
+6. Authentication → URL Configuration: укажите **Site URL** — адрес сайта на GitHub Pages.
 
-Схема меняется только новыми файлами в `supabase/migrations/`; уже применённые миграции не редактируются.
-
-## Локальная разработка
-
-Нужен Node.js 24 или новее.
+### 2. Локально
 
 ```bash
 npm install
 cp .env.example .env.local
+```
+
+Заполните `.env.local` значениями из Project Settings → API: Project URL и publishable (anon) ключ. Затем:
+
+```bash
+npm run db:check-anon
 npm run dev
 ```
 
-Сайт откроется на http://localhost:3000.
+`db:check-anon` убеждается, что без входа данные недоступны. Сайт откроется на http://localhost:3000. Чтобы сразу увидеть графики, в «Настройках» нажмите **Заполнить демо-данными** (только для пустого аккаунта).
 
-| Команда             | Что делает                  |
-| ------------------- | --------------------------- |
-| `npm run dev`       | Сервер разработки           |
-| `npm run build`     | Статическая сборка в `out/` |
-| `npm run lint`      | ESLint                      |
-| `npm run typecheck` | Проверка типов TypeScript   |
-| `npm test`          | Тесты Vitest                |
-| `npm run format`    | Форматирование Prettier     |
-
-### Проверить сборку так, как её увидит GitHub Pages
-
-Сайт на GitHub Pages живёт по адресу `/<имя репозитория>/`, поэтому собираем с `basePath` и раздаём папку под этим путём:
-
-```bash
-NEXT_PUBLIC_BASE_PATH=/dashboard npm run build
-mkdir -p .preview && rm -rf .preview/dashboard && cp -r out .preview/dashboard
-npx serve .preview
-```
-
-Затем откройте http://localhost:3000/dashboard/.
-
-Особенности Windows:
-
-- В Git Bash добавьте `MSYS_NO_PATHCONV=1` перед первой командой, иначе `/dashboard` превратится в путь вида `C:/Program Files/Git/dashboard`.
-- Next.js 16.4 при сборке на Windows кладёт файлы предзагрузки страниц (`__next.*.txt`) во вложенные папки, а браузер ищет их одним файлом. Поэтому в консоли видны ошибки 404, хотя переходы работают. При сборке в GitHub Actions (Linux) этой проблемы нет.
-
-## Публикация на GitHub Pages
+### 3. GitHub Pages
 
 1. Создайте репозиторий на GitHub (на бесплатном плане — публичный) и отправьте в него ветку `main`.
 2. Settings → Pages → Source: **GitHub Actions**.
-3. Settings → Secrets and variables → Actions → вкладка **Variables**: добавьте `NEXT_PUBLIC_SUPABASE_URL` и `NEXT_PUBLIC_SUPABASE_ANON_KEY` (до этапа 2 можно оставить пустыми).
-4. Каждый push в `main` запускает workflow `Deploy to GitHub Pages`: lint, проверка типов, тесты, сборка, публикация.
-5. Сайт: `https://<user>.github.io/<repo>/`.
+3. Settings → Secrets and variables → Actions → вкладка **Variables**: добавьте `NEXT_PUBLIC_SUPABASE_URL` и `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+4. Каждый push в `main` запускает workflow [Deploy to GitHub Pages](.github/workflows/deploy.yml): lint, проверка типов, тесты, сборка, публикация.
+5. Сайт: `https://<user>.github.io/<repo>/`. `basePath` подставляется из имени репозитория автоматически.
+
+## Команды
+
+| Команда                 | Что делает                                      |
+| ----------------------- | ----------------------------------------------- |
+| `npm run dev`           | Сервер разработки                               |
+| `npm run build`         | Статическая сборка в `out/`                     |
+| `npm run lint`          | ESLint                                          |
+| `npm run typecheck`     | Проверка типов TypeScript                       |
+| `npm test`              | Тесты Vitest                                    |
+| `npm run format`        | Форматирование Prettier                         |
+| `npm run db:push`       | Применить новые миграции к привязанному проекту |
+| `npm run db:test`       | SQL-тест схемы на облачной базе (с откатом)     |
+| `npm run db:types`      | Перегенерировать типы БД                        |
+| `npm run db:check-anon` | Проверить, что без входа данные недоступны      |
+
+## Если что-то не так
+
+- **Сборку нужно проверить с `basePath`, как на GitHub Pages:**
+
+  ```bash
+  NEXT_PUBLIC_BASE_PATH=/dashboard npm run build
+  mkdir -p .preview && rm -rf .preview/dashboard && cp -r out .preview/dashboard
+  npx serve .preview
+  ```
+
+  и откройте http://localhost:3000/dashboard/. В Git Bash на Windows добавьте `MSYS_NO_PATHCONV=1` перед первой командой, иначе `/dashboard` превратится в путь вида `C:/Program Files/Git/dashboard`.
+
+- **В консоли 404 на файлы `__next.*.txt` при локальной сборке на Windows.** Next.js 16.4 кладёт файлы предзагрузки страниц во вложенные папки, а браузер ищет их одним файлом. Переходы при этом работают; при сборке в GitHub Actions (Linux) проблемы нет.
+- **Правка CSS не применилась в `npm run dev`.** Остановите сервер, удалите папку `.next` и запустите снова.
+- **Supabase поставил проект на паузу.** Бесплатный проект засыпает, если к нему около недели не было запросов. Восстановите его в панели Supabase.
+- **Ошибка «нет доступа» после долгого перерыва.** Сессия истекла — выйдите и войдите заново.
+
+## Правила разработки
+
+- Схема БД меняется только новыми миграциями; применённые не редактируются.
+- TypeScript strict, без `any`; ввод пользователя проверяется zod.
+- Имена в коде — на английском, тексты интерфейса и комментарии — на русском.
+- Коммиты в стиле Conventional Commits.
+- Ключ `service_role` в приложении не используется никогда.
