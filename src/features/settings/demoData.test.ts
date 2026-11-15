@@ -83,3 +83,17 @@ describe("демо-данные", () => {
     for (const p of demoProjects) expect(areaKeys.has(p.area)).toBe(true);
   });
 });
+
+describe("демо-данные утром", () => {
+  it("ни одна отметка времени не позже текущего момента", () => {
+    // Сегодня 8 утра: «выполнено сегодня» не может стоять на 12:00.
+    const morning = new Date(2026, 10, 16, 8, 0);
+    for (const t of buildDemoTasks(TODAY, morning)) {
+      expect(new Date(t.created_at) <= morning).toBe(true);
+      if (t.completed_at) {
+        expect(new Date(t.completed_at) <= morning).toBe(true);
+        expect(t.created_at <= t.completed_at).toBe(true);
+      }
+    }
+  });
+});

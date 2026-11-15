@@ -223,14 +223,21 @@ export type DemoTask = {
   tags: TagKey[];
 };
 
-/** Метка времени: полдень дня, который был days дней назад, по местному времени. */
-function localNoon(today: ISODate, daysAgo: number): string {
+/**
+ * Полдень дня, который был daysAgo дней назад, по местному времени. Но не
+ * позже now: если сейчас утро, «выполнено сегодня» не может быть в 12:00.
+ */
+function pastNoon(today: ISODate, daysAgo: number, now: Date): string {
   const [y, m, d] = addDaysISO(today, -daysAgo).split("-").map(Number);
-  return new Date(y, m - 1, d, 12).toISOString();
+  const noon = new Date(y, m - 1, d, 12);
+  return (noon < now ? noon : now).toISOString();
 }
 
 /** Задачи демо-набора с датами относительно today. */
-export function buildDemoTasks(today: ISODate): DemoTask[] {
+export function buildDemoTasks(
+  today: ISODate,
+  now: Date = new Date(),
+): DemoTask[] {
   return rows.map(
     ([
       title,
@@ -261,9 +268,9 @@ export function buildDemoTasks(today: ISODate): DemoTask[] {
         : due === null
           ? null
           : addDaysISO(today, due),
-      created_at: localNoon(today, createdAgo),
+      created_at: pastNoon(today, createdAgo, now),
       completed_at:
-        completedAgo === null ? null : localNoon(today, completedAgo),
+        completedAgo === null ? null : pastNoon(today, completedAgo, now),
       recurrence: recurrence ?? null,
       tags: tags ?? [],
     }),
