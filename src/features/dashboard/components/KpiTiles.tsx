@@ -90,7 +90,11 @@ export function KpiTiles({ kpis }: { kpis: DashboardKpis }) {
         const className =
           "flex h-full flex-col gap-1 rounded-xl border bg-card p-4";
         return (
-          <li key={tile.label} className="min-w-0">
+          <li
+            key={tile.label}
+            // Пятая карточка на телефоне — на всю ширину, а не одна в ряду.
+            className="min-w-0 last:col-span-2 sm:last:col-span-1"
+          >
             {tile.href ? (
               <Link
                 href={tile.href}
