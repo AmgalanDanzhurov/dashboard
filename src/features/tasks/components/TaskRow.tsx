@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Repeat } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -13,6 +13,7 @@ import {
 import { TagChip } from "@/features/tags/components/TagChip";
 import { dueLabel } from "@/lib/domain/dates";
 import { isOverdue } from "@/lib/domain/filters";
+import { describeRecurrence, parseRecurrence } from "@/lib/domain/recurrence";
 import { taskLocation } from "@/lib/domain/location";
 import { priorities, priorityMeta, statuses } from "@/lib/domain/taskMeta";
 import type { Task, TaskPriority, TaskStatus } from "@/lib/domain/types";
@@ -36,6 +37,7 @@ export function TaskRow({ task, data, showLocation, onOpen }: Props) {
   const overdue = isOverdue(task, data.today);
   const priority = priorityMeta(task.priority);
   const location = showLocation ? locationLabel(task, data) : null;
+  const rule = parseRecurrence(task.recurrence);
 
   return (
     <li className="flex items-start gap-3 py-2.5">
@@ -124,6 +126,14 @@ export function TaskRow({ task, data, showLocation, onOpen }: Props) {
               <CalendarDays className="size-3.5" aria-hidden />
               {overdue ? <span className="sr-only">Просрочено:</span> : null}
               {dueLabel(task.due_date, data.today)}
+            </span>
+          ) : null}
+
+          {rule ? (
+            <span className="inline-flex items-center gap-1">
+              <Repeat className="size-3.5" aria-hidden />
+              <span className="sr-only">Повтор:</span>
+              {describeRecurrence(rule)}
             </span>
           ) : null}
 

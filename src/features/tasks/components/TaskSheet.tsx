@@ -26,7 +26,8 @@ import {
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { TagToggleList } from "@/features/tags/components/TagToggleList";
-import { formatLongDate, localDateOf } from "@/lib/domain/dates";
+import { formatLongDate, localDateOf, todayISO } from "@/lib/domain/dates";
+import { parseRecurrence } from "@/lib/domain/recurrence";
 import {
   decodeLocation,
   encodeLocation,
@@ -36,10 +37,12 @@ import { priorities, statuses } from "@/lib/domain/taskMeta";
 import type { Task, TaskPriority, TaskStatus } from "@/lib/domain/types";
 
 import { useDeleteTask, useUpdateTask } from "../hooks";
+import { fromRecurrenceForm, toRecurrenceForm } from "../recurrenceForm";
 import { taskFormSchema, type TaskFormValues } from "../schema";
 import type { TaskData } from "../useTaskData";
 
 import { LocationSelect } from "./LocationSelect";
+import { RecurrenceEditor } from "./RecurrenceEditor";
 
 type Props = {
   task: Task | null;
@@ -79,6 +82,7 @@ function TaskForm({
     register,
     control,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
@@ -90,6 +94,10 @@ function TaskForm({
       dueDate: task.due_date ?? "",
       location: encodeLocation(taskLocation(task)),
       tagIds: task.tagIds,
+      recurrence: toRecurrenceForm(
+        parseRecurrence(task.recurrence),
+        task.due_date ?? todayISO(),
+      ),
     },
   });
 
@@ -104,6 +112,7 @@ function TaskForm({
         due_date: values.dueDate || null,
         location: decodeLocation(values.location),
         tagIds: values.tagIds,
+        recurrence: fromRecurrenceForm(values.recurrence),
       },
     });
     onDone();
@@ -219,6 +228,13 @@ function TaskForm({
             <p className="text-sm text-destructive">{errors.dueDate.message}</p>
           ) : null}
         </div>
+
+        <RecurrenceEditor
+          control={control}
+          register={register}
+          setValue={setValue}
+          errors={errors}
+        />
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="task-location">Где лежит</Label>

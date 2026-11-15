@@ -42,6 +42,7 @@ export function QuickAddTask({
         due_date: null,
         location,
         tagIds: [],
+        recurrence: null,
       });
     } catch {
       // Ошибку уже показал toast — возвращаем текст, чтобы не потерять его.

@@ -1,4 +1,5 @@
 import { locationColumns, type TaskLocation } from "@/lib/domain/location";
+import type { Recurrence } from "@/lib/domain/recurrence";
 import type {
   ISODate,
   Task,
@@ -26,6 +27,8 @@ export type TaskInput = {
   due_date: ISODate | null;
   location: TaskLocation;
   tagIds: string[];
+  /** null — задача не повторяется. */
+  recurrence: Recurrence | null;
 };
 
 export async function listTasks(): Promise<Task[]> {
@@ -45,6 +48,7 @@ function toColumns(input: TaskInput) {
     status: input.status,
     priority: input.priority,
     due_date: input.due_date,
+    recurrence: input.recurrence,
     ...locationColumns(input.location),
   };
 }
@@ -123,4 +127,20 @@ export async function setTaskPriority(
 export async function deleteTask(id: string): Promise<void> {
   const { error } = await getSupabase().from("tasks").delete().eq("id", id);
   if (error) throw toDataError(error, "удалить задачу");
+}
+
+/**
+ * Выполняет экземпляр повторяющейся задачи и создаёт следующий со сроком
+ * nextDue — одной транзакцией в базе. Возвращает id нового экземпляра.
+ */
+export async function completeRecurringTask(
+  id: string,
+  nextDue: ISODate,
+): Promise<string> {
+  const { data, error } = await getSupabase().rpc("complete_recurring_task", {
+    p_task_id: id,
+    p_next_due: nextDue,
+  });
+  if (error) throw toDataError(error, "выполнить повторяющуюся задачу");
+  return data;
 }

@@ -8,11 +8,14 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { dueLabel, todayISO } from "@/lib/domain/dates";
+import { getNextDueDate, parseRecurrence } from "@/lib/domain/recurrence";
 import type { Task, TaskPriority, TaskStatus } from "@/lib/domain/types";
 import { errorMessage } from "@/lib/errors";
 import { queryKeys } from "@/lib/query/queryKeys";
 
 import {
+  completeRecurringTask,
   createTask,
   deleteTask,
   listTasks,
@@ -46,13 +49,45 @@ export function useCreateTask() {
   });
 }
 
+/**
+ * Если задачу с правилом повторения переводят в «Готово», выполняем её
+ * через RPC: база отметит экземпляр и создаст следующий. Иначе повторение
+ * тихо прекратилось бы. Возвращает срок следующего экземпляра или null.
+ */
+async function completeIfRecurring(
+  task: Pick<Task, "id" | "status">,
+  next: { status: TaskStatus; recurrence: unknown; due_date: string | null },
+): Promise<string | null> {
+  const rule = parseRecurrence(next.recurrence);
+  if (next.status !== "done" || task.status === "done") return null;
+  if (!rule || !next.due_date) return null;
+  const nextDue = getNextDueDate(rule, next.due_date, todayISO());
+  await completeRecurringTask(task.id, nextDue);
+  return nextDue;
+}
+
+function announceNext(nextDue: string | null) {
+  if (nextDue) toast.success(`Следующий раз: ${dueLabel(nextDue, todayISO())}`);
+}
+
 export function useUpdateTask() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ task, input }: { task: Task; input: TaskInput }) =>
-      updateTask(task, input),
-    onSuccess: () => {
-      toast.success("Задача сохранена");
+    mutationFn: async ({ task, input }: { task: Task; input: TaskInput }) => {
+      const completing =
+        input.status === "done" &&
+        task.status !== "done" &&
+        input.recurrence !== null;
+      // Остальные поля сохраняем как обычно, а выполнение — через RPC.
+      await updateTask(
+        task,
+        completing ? { ...input, status: task.status } : input,
+      );
+      return completing ? completeIfRecurring(task, input) : null;
+    },
+    onSuccess: (nextDue) => {
+      if (nextDue) announceNext(nextDue);
+      else toast.success("Задача сохранена");
       return invalidateTasksAndProgress(queryClient);
     },
     onError,
@@ -100,7 +135,12 @@ export function useSetTaskStatus() {
           ? (task.completed_at ?? new Date().toISOString())
           : null,
     }),
-    ({ task, status }) => setTaskStatus(task.id, status),
+    async ({ task, status }) => {
+      // task — состояние до изменения: onMutate меняет только кэш.
+      const nextDue = await completeIfRecurring(task, { ...task, status });
+      if (nextDue) announceNext(nextDue);
+      else await setTaskStatus(task.id, status);
+    },
   );
 }
 
