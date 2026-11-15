@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import {
@@ -19,26 +20,35 @@ const config = {
 type Props = {
   days: { date: ISODate; count: number }[];
   today: ISODate;
+  title?: string;
 };
 
-/** Столбчатый график «Выполнено за 14 дней»: одна серия, легенда не нужна. */
-export function CompletedChart({ days, today }: Props) {
+/** Столбчатый график «Выполнено по дням»: одна серия, легенда не нужна. */
+export function CompletedChart({
+  days,
+  today,
+  title = "Выполнено за 14 дней",
+}: Props) {
+  const headingId = useId();
   const total = days.reduce((sum, d) => sum + d.count, 0);
   const data = days.map((d) => ({
     ...d,
-    // На оси — число месяца, в подсказке — полная дата.
-    day: String(Number(d.date.slice(8, 10))),
+    // На коротком периоде на оси — число месяца, на длинном — «16 ноя».
+    day:
+      days.length <= 14
+        ? String(Number(d.date.slice(8, 10)))
+        : formatDue(d.date, today),
     label: d.date === today ? "Сегодня" : formatDue(d.date, today),
   }));
 
   return (
     <section
-      aria-labelledby="completed-heading"
+      aria-labelledby={headingId}
       className="flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-4"
     >
       <div className="flex items-baseline justify-between gap-3">
-        <h2 id="completed-heading" className="font-medium">
-          Выполнено за 14 дней
+        <h2 id={headingId} className="font-medium">
+          {title}
         </h2>
         <span className="text-sm text-muted-foreground tabular-nums">
           {total} {plural(total, TASK_FORMS)}
@@ -58,6 +68,7 @@ export function CompletedChart({ days, today }: Props) {
             axisLine={false}
             tickMargin={6}
             interval="preserveStartEnd"
+            minTickGap={12}
           />
           <YAxis
             allowDecimals={false}

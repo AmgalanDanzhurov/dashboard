@@ -20,6 +20,7 @@ import {
   useSetProjectArchived,
 } from "../hooks";
 
+import { ProjectBurndown } from "./ProjectBurndown";
 import { ProjectMenu } from "./ProjectMenu";
 
 /** Страница /project/?id=: прогресс проекта. Задачи появятся на этапе 5. */
@@ -156,6 +157,8 @@ export function ProjectView() {
           ) : null}
         </div>
       </header>
+
+      <ProjectBurndown projectId={project.id} />
 
       <section aria-labelledby="project-tasks" className="flex flex-col gap-4">
         <h2 id="project-tasks" className="text-lg font-semibold">

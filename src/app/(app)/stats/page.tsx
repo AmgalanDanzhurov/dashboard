@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { PagePlaceholder } from "@/components/layout/PagePlaceholder";
+import { StatsView } from "@/features/stats/components/StatsView";
 
 export const metadata: Metadata = { title: "Статистика" };
 
+// Период и проект хранятся в адресе (useSearchParams), поэтому нужен <Suspense>.
 export default function StatsPage() {
   return (
-    <PagePlaceholder
-      title="Статистика"
-      description="Выполнено по дням, по разделам, тегам и приоритетам, burndown проекта — этап 8."
-    />
+    <Suspense>
+      <StatsView />
+    </Suspense>
   );
 }
