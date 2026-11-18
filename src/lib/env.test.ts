@@ -24,3 +24,11 @@ describe("readSupabaseEnv", () => {
     ).toThrow(/Не настроено подключение к Supabase/);
   });
 });
+
+describe("readSupabaseEnv — переменных нет вовсе", () => {
+  it("сообщает по-русски, без английского текста zod", () => {
+    expect(() => readSupabaseEnv({})).toThrow(
+      "Не настроено подключение к Supabase: NEXT_PUBLIC_SUPABASE_URL должен быть адресом проекта Supabase; NEXT_PUBLIC_SUPABASE_ANON_KEY не задан. См. .env.example.",
+    );
+  });
+});

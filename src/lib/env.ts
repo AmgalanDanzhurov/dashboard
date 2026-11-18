@@ -4,8 +4,10 @@ const supabaseEnvSchema = z.object({
   url: z.url({
     error: "NEXT_PUBLIC_SUPABASE_URL должен быть адресом проекта Supabase",
   }),
+  // error и у string(), и у min(): переменной может не быть вовсе (undefined)
+  // или она может быть пустой строкой.
   anonKey: z
-    .string()
+    .string({ error: "NEXT_PUBLIC_SUPABASE_ANON_KEY не задан" })
     .min(1, { error: "NEXT_PUBLIC_SUPABASE_ANON_KEY не задан" }),
 });
 
