@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 import type { TaskData } from "../useTaskData";
 
+import { SortableTaskList } from "./SortableTaskList";
 import { TaskRow } from "./TaskRow";
 import { TaskSheet } from "./TaskSheet";
 
@@ -19,9 +20,10 @@ type Props = {
   data: TaskData;
   /**
    * Как разбить невыполненные: по сроку («Просрочено», «Сегодня», …),
-   * по группам страницы «Сегодня» или не разбивать (свой порядок, приоритет).
+   * по группам страницы «Сегодня», не разбивать (приоритет, дата создания)
+   * или «Свой порядок» — подряд, с перетаскиванием.
    */
-  grouping: "due" | "today" | "none";
+  grouping: "due" | "today" | "none" | "manual";
   showLocation: boolean;
   emptyText: string;
 };
@@ -88,6 +90,13 @@ export function TaskList({
             <ul className="divide-y">{group.tasks.map(row)}</ul>
           </section>
         ))
+      ) : grouping === "manual" ? (
+        <SortableTaskList
+          tasks={open}
+          data={data}
+          showLocation={showLocation}
+          onOpen={(t) => setOpenId(t.id)}
+        />
       ) : (
         <ul className="divide-y">{open.map(row)}</ul>
       )}

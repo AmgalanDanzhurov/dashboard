@@ -168,3 +168,16 @@ export async function setTaskPlannedFor(
     );
   }
 }
+
+/** Сохраняет свой порядок: обычно одна задача, при перенумерации — список. */
+export async function saveTaskOrder(
+  updates: readonly { id: string; sort_order: number }[],
+): Promise<void> {
+  const results = await Promise.all(
+    updates.map(({ id, sort_order }) =>
+      getSupabase().from("tasks").update({ sort_order }).eq("id", id),
+    ),
+  );
+  const failed = results.find((r) => r.error)?.error;
+  if (failed) throw toDataError(failed, "сохранить порядок задач");
+}

@@ -18,6 +18,8 @@ import {
   defaultFilters,
   type DueFilter,
   type TaskFilters,
+  sortLabels,
+  sortValues,
   type TaskSort,
 } from "@/lib/domain/filters";
 import { priorities, statuses } from "@/lib/domain/taskMeta";
@@ -36,11 +38,10 @@ const dueOptions: { value: DueFilter; label: string }[] = [
   { value: "none", label: "Без срока" },
 ];
 
-const sortOptions: { value: TaskSort; label: string }[] = [
-  { value: "due", label: "По сроку" },
-  { value: "priority", label: "По приоритету" },
-  { value: "created", label: "Сначала новые" },
-];
+const sortOptions = sortValues.map((value) => ({
+  value,
+  label: sortLabels[value],
+}));
 
 type Props = {
   filters: TaskFilters;

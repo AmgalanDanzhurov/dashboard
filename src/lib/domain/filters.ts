@@ -1,10 +1,12 @@
 import { daysFrom } from "./dates";
 import { resolveAreaId } from "./location";
+import { byManualOrder } from "./manualOrder";
 import { isPriority, isStatus, priorityMeta } from "./taskMeta";
 import type { ISODate, Project, Task, TaskPriority, TaskStatus } from "./types";
 
 export type DueFilter = "overdue" | "today" | "week" | "none";
-export type TaskSort = "due" | "priority" | "created";
+/** manual — «Свой порядок»: как расставил пользователь перетаскиванием. */
+export type TaskSort = "due" | "priority" | "created" | "manual";
 
 export type TaskFilters = {
   /** id раздела или "inbox" для задач без раздела и проекта. */
@@ -40,6 +42,7 @@ type FilterableTask = Pick<
   | "area_id"
   | "tagIds"
   | "created_at"
+  | "sort_order"
 >;
 
 /** Просрочена: срок раньше сегодняшнего дня и задача не выполнена. */
@@ -130,7 +133,9 @@ export function sortTasks<T extends FilterableTask>(
       ? (a: T, b: T) => byDue(a, b) || byPriority(a, b) || byCreatedDesc(a, b)
       : sort === "priority"
         ? (a: T, b: T) => byPriority(a, b) || byDue(a, b) || byCreatedDesc(a, b)
-        : byCreatedDesc;
+        : sort === "manual"
+          ? byManualOrder
+          : byCreatedDesc;
   return [...tasks].sort(compare);
 }
 
@@ -191,7 +196,19 @@ export function groupByDue<T extends FilterableTask>(
 // отличия от значений по умолчанию.
 
 const dueValues: DueFilter[] = ["overdue", "today", "week", "none"];
-const sortValues: TaskSort[] = ["due", "priority", "created"];
+export const sortValues: TaskSort[] = ["due", "priority", "created", "manual"];
+
+/** Подписи сортировок для переключателей. */
+export const sortLabels: Record<TaskSort, string> = {
+  due: "По сроку",
+  priority: "По приоритету",
+  created: "Сначала новые",
+  manual: "Свой порядок",
+};
+
+export function parseSort(value: string | null): TaskSort | null {
+  return sortValues.find((v) => v === value) ?? null;
+}
 
 function list(params: URLSearchParams, key: string): string[] {
   return (params.get(key) ?? "").split(",").filter(Boolean);

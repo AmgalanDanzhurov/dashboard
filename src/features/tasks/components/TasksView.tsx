@@ -17,6 +17,7 @@ import { useTaskData } from "../useTaskData";
 
 import { QuickAddTask } from "./QuickAddTask";
 import { TaskFiltersBar } from "./TaskFiltersBar";
+import { groupingFor } from "./SortSelect";
 import { TaskList } from "./TaskList";
 
 /** Страница /tasks: все задачи с фильтрами в адресе. */
@@ -76,7 +77,7 @@ export function TasksView() {
           <TaskList
             tasks={visible}
             data={data}
-            grouping={filters.sort === "due" ? "due" : "none"}
+            grouping={groupingFor(filters.sort, "due")}
             showLocation
             emptyText={
               data.tasks.length === 0

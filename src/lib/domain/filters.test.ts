@@ -219,3 +219,24 @@ describe("фильтры в URL", () => {
     ).toBe(2);
   });
 });
+
+describe("sortTasks — свой порядок", () => {
+  it("по sort_order, без учёта срока и приоритета", () => {
+    const a = task({
+      sort_order: 30,
+      due_date: "2026-11-13",
+      priority: "urgent",
+    });
+    const b = task({ sort_order: 10 });
+    const c = task({ sort_order: 20 });
+    expect(sortTasks([a, b, c], "manual").map((t) => t.id)).toEqual(
+      [b, c, a].map((t) => t.id),
+    );
+  });
+
+  it("сортировка manual переживает адрес", () => {
+    expect(parseFilters(new URLSearchParams("sort=manual")).sort).toBe(
+      "manual",
+    );
+  });
+});

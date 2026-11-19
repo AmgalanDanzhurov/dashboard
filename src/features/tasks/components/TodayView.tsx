@@ -13,16 +13,18 @@ import { todayGroupOf, todayTasks } from "@/lib/domain/today";
 import { useTaskData } from "../useTaskData";
 
 import { QuickAddTask } from "./QuickAddTask";
+import { groupingFor, SortSelect, useSortParam } from "./SortSelect";
 import { TaskList } from "./TaskList";
 
 /** Страница /today: задачи дня — просроченные, со сроком сегодня и план дня. */
 export function TodayView() {
   const data = useTaskData();
   const { today } = data;
+  const [sort, setSort] = useSortParam();
 
   const tasks = sortTasks(
     todayTasks(withoutArchived(data.tasks, data.projectsById), today),
-    "due",
+    sort,
   );
   const openCount = tasks.filter((t) => todayGroupOf(t, today) !== null).length;
 
@@ -44,6 +46,10 @@ export function TodayView() {
         placeholder="Задача на сегодня"
       />
 
+      <div className="flex justify-end">
+        <SortSelect value={sort} onChange={setSort} />
+      </div>
+
       {data.isPending ? (
         <div className="flex flex-col gap-3" aria-busy="true">
           <span className="sr-only">Загружаем задачи…</span>
@@ -56,7 +62,7 @@ export function TodayView() {
         <TaskList
           tasks={tasks}
           data={data}
-          grouping="today"
+          grouping={groupingFor(sort, "today")}
           showLocation
           emptyText="На сегодня ничего нет. Добавьте задачу строкой выше или нажмите кнопку с солнцем у любой задачи, чтобы взять её в план дня."
         />

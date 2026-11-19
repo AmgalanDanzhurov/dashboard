@@ -9,6 +9,7 @@ import {
 import { toast } from "sonner";
 
 import { dueLabel, todayISO } from "@/lib/domain/dates";
+import { applyOrder } from "@/lib/domain/manualOrder";
 import { getNextDueDate, parseRecurrence } from "@/lib/domain/recurrence";
 import type { Task, TaskPriority, TaskStatus } from "@/lib/domain/types";
 import { errorMessage } from "@/lib/errors";
@@ -19,6 +20,7 @@ import {
   createTask,
   deleteTask,
   listTasks,
+  saveTaskOrder,
   setTaskPlannedFor,
   setTaskPriority,
   setTaskStatus,
@@ -170,4 +172,31 @@ export function useSetTaskPlannedFor() {
     (task, { plannedFor }) => ({ ...task, planned_for: plannedFor }),
     ({ task, plannedFor }) => setTaskPlannedFor(task.id, plannedFor),
   );
+}
+
+/**
+ * Свой порядок: сразу переставляет задачи в кэше и сохраняет в базе.
+ * При ошибке возвращает прежний порядок.
+ */
+export function useReorderTasks() {
+  const queryClient = useQueryClient();
+  const key = queryKeys.tasks.list();
+
+  return useMutation({
+    mutationFn: saveTaskOrder,
+    onMutate: async (updates) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<Task[]>(key);
+      queryClient.setQueryData<Task[]>(key, (tasks) =>
+        tasks ? applyOrder(tasks, updates) : tasks,
+      );
+      return { previous };
+    },
+    onError: (error, _updates, context) => {
+      if (context?.previous) queryClient.setQueryData(key, context.previous);
+      onError(error);
+    },
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all }),
+  });
 }

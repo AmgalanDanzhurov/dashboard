@@ -30,9 +30,24 @@ type Props = {
   /** Показывать, где лежит задача (на общей странице задач). */
   showLocation: boolean;
   onOpen: (task: Task) => void;
+  /** Ручка перетаскивания — только в режиме «Свой порядок». */
+  dragHandle?: React.ReactNode;
+  /** Для перетаскивания: элемент строки, его сдвиг и признак «тащат сейчас». */
+  rowRef?: (element: HTMLLIElement | null) => void;
+  style?: React.CSSProperties;
+  dragging?: boolean;
 };
 
-export function TaskRow({ task, data, showLocation, onOpen }: Props) {
+export function TaskRow({
+  task,
+  data,
+  showLocation,
+  onOpen,
+  dragHandle,
+  rowRef,
+  style,
+  dragging = false,
+}: Props) {
   const setStatus = useSetTaskStatus();
   const setPriority = useSetTaskPriority();
   const done = task.status === "done";
@@ -42,7 +57,17 @@ export function TaskRow({ task, data, showLocation, onOpen }: Props) {
   const rule = parseRecurrence(task.recurrence);
 
   return (
-    <li className="flex items-start gap-3 py-2.5">
+    <li
+      ref={rowRef}
+      style={style}
+      className={cn(
+        "flex items-start gap-3 py-2.5",
+        // Поднятая строка — поверх остальных и с тенью.
+        dragging &&
+          "relative z-10 rounded-md bg-card shadow-lg ring-1 ring-border",
+      )}
+    >
+      {dragHandle}
       <Checkbox
         className="mt-0.5"
         checked={done}
