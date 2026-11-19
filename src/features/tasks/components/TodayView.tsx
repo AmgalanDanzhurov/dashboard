@@ -41,7 +41,7 @@ export function TodayView() {
       <QuickAddTask
         location={{ kind: "inbox" }}
         plannedFor={today}
-        placeholder="Добавить в план на сегодня"
+        placeholder="Задача на сегодня"
       />
 
       {data.isPending ? (

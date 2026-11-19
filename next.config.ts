@@ -11,8 +11,8 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   basePath,
   assetPrefix: basePath || undefined,
-  // Значок dev-сервера справа: слева внизу он закрывал кнопку «Выйти».
-  devIndicators: { position: "bottom-right" },
+  // Значок dev-сервера сверху: внизу он закрывал «Выйти» и «Ещё».
+  devIndicators: { position: "top-right" },
   turbopack: {
     rules: {
       "*.css": {
