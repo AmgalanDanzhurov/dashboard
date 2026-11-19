@@ -9,6 +9,7 @@ import type {
 import { getSupabase } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/supabase/database.types";
 import { toDataError } from "@/lib/supabase/errors";
+import { fetchAll } from "@/lib/supabase/fetchAll";
 
 /** Задача вместе с её тегами одним запросом. */
 const TASK_SELECT = "*, task_tags(tag_id)";
@@ -37,10 +38,15 @@ export type TaskInput = {
 };
 
 export async function listTasks(): Promise<Task[]> {
-  const { data, error } = await getSupabase()
-    .from("tasks")
-    .select(TASK_SELECT)
-    .order("created_at", { ascending: false });
+  // Страницами: больше 1000 строк за раз Supabase не отдаёт.
+  const { data, error } = await fetchAll<TaskRow>((from, to) =>
+    getSupabase()
+      .from("tasks")
+      .select(TASK_SELECT)
+      .order("created_at", { ascending: false })
+      .order("id")
+      .range(from, to),
+  );
   if (error) throw toDataError(error, "загрузить задачи");
   return data.map(toTask);
 }
