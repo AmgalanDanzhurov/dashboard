@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { TaskLocation } from "@/lib/domain/location";
+import type { ISODate } from "@/lib/domain/types";
 
 import { useCreateTask } from "../hooks";
 import { quickAddSchema } from "../schema";
@@ -15,6 +16,8 @@ type Props = {
   /** Куда попадёт новая задача. */
   location: TaskLocation;
   placeholder?: string;
+  /** Сразу положить задачу в план дня на эту дату (страница «Сегодня»). */
+  plannedFor?: ISODate;
 };
 
 /**
@@ -25,6 +28,7 @@ type Props = {
 export function QuickAddTask({
   location,
   placeholder = "Новая задача",
+  plannedFor,
 }: Props) {
   const [title, setTitle] = useState("");
   const createTask = useCreateTask();
@@ -48,6 +52,7 @@ export function QuickAddTask({
         location,
         tagIds: [],
         recurrence: null,
+        planned_for: plannedFor ?? null,
       });
     } catch {
       // Ошибку уже показал toast — возвращаем текст, чтобы не потерять его.

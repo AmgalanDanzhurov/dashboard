@@ -41,7 +41,7 @@ export function LocationTasks({ location, emptyText }: Props) {
         <TaskList
           tasks={tasks}
           data={data}
-          grouped
+          grouping="due"
           showLocation={false}
           emptyText={emptyText}
         />

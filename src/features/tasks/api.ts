@@ -29,6 +29,11 @@ export type TaskInput = {
   tagIds: string[];
   /** null — задача не повторяется. */
   recurrence: Recurrence | null;
+  /**
+   * План дня — только при создании (быстрое добавление на «Сегодня»).
+   * При сохранении формы не передаётся: план меняется отдельной кнопкой.
+   */
+  planned_for?: ISODate | null;
 };
 
 export async function listTasks(): Promise<Task[]> {
@@ -50,6 +55,8 @@ function toColumns(input: TaskInput) {
     due_date: input.due_date,
     recurrence: input.recurrence,
     ...locationColumns(input.location),
+    // undefined — колонку не трогаем, чтобы форма не сбросила план дня.
+    ...(input.planned_for !== undefined && { planned_for: input.planned_for }),
   };
 }
 
@@ -143,4 +150,21 @@ export async function completeRecurringTask(
   });
   if (error) throw toDataError(error, "выполнить повторяющуюся задачу");
   return data;
+}
+
+/** Добавить задачу в план дня на дату или убрать из плана (null). */
+export async function setTaskPlannedFor(
+  id: string,
+  plannedFor: ISODate | null,
+): Promise<void> {
+  const { error } = await getSupabase()
+    .from("tasks")
+    .update({ planned_for: plannedFor })
+    .eq("id", id);
+  if (error) {
+    throw toDataError(
+      error,
+      plannedFor ? "добавить задачу в план дня" : "убрать задачу из плана дня",
+    );
+  }
 }

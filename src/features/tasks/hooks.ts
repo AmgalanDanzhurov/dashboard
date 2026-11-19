@@ -19,6 +19,7 @@ import {
   createTask,
   deleteTask,
   listTasks,
+  setTaskPlannedFor,
   setTaskPriority,
   setTaskStatus,
   updateTask,
@@ -161,4 +162,12 @@ export function useDeleteTask() {
     },
     onError,
   });
+}
+
+/** «На сегодня»: добавляет задачу в план дня или убирает её оттуда. */
+export function useSetTaskPlannedFor() {
+  return useOptimisticTaskPatch<{ task: Task; plannedFor: string | null }>(
+    (task, { plannedFor }) => ({ ...task, planned_for: plannedFor }),
+    ({ task, plannedFor }) => setTaskPlannedFor(task.id, plannedFor),
+  );
 }

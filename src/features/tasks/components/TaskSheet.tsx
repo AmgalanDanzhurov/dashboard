@@ -42,6 +42,7 @@ import { taskFormSchema, type TaskFormValues } from "../schema";
 import type { TaskData } from "../useTaskData";
 
 import { LocationSelect } from "./LocationSelect";
+import { PlanTodayButton } from "./PlanTodayButton";
 import { RecurrenceEditor } from "./RecurrenceEditor";
 
 type Props = {
@@ -139,6 +140,11 @@ function TaskForm({
       </SheetHeader>
 
       <div className="flex flex-col gap-4 px-4">
+        {/* План дня меняется сразу, без кнопки «Сохранить». */}
+        {task.status !== "done" ? (
+          <PlanTodayButton task={task} variant="labeled" />
+        ) : null}
+
         <div className="flex flex-col gap-2">
           <Label htmlFor="task-title">Название</Label>
           <Input

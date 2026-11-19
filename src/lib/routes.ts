@@ -6,6 +6,7 @@ export const routes = {
   areas: "/areas/",
   area: (id: string) => `/area/?id=${encodeURIComponent(id)}`,
   project: (id: string) => `/project/?id=${encodeURIComponent(id)}`,
+  today: "/today/",
   tasks: "/tasks/",
   stats: "/stats/",
   settings: "/settings/",

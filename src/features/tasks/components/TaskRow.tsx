@@ -22,6 +22,8 @@ import { cn } from "@/lib/utils";
 import { useSetTaskPriority, useSetTaskStatus } from "../hooks";
 import type { TaskData } from "../useTaskData";
 
+import { PlanTodayButton } from "./PlanTodayButton";
+
 type Props = {
   task: Task;
   data: TaskData;
@@ -55,16 +57,24 @@ export function TaskRow({ task, data, showLocation, onOpen }: Props) {
       />
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <button
-          type="button"
-          onClick={() => onOpen(task)}
-          className={cn(
-            "rounded-sm text-left break-words outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring",
-            done && "text-muted-foreground line-through",
-          )}
-        >
-          {task.title}
-        </button>
+        <div className="flex items-start gap-2">
+          <button
+            type="button"
+            onClick={() => onOpen(task)}
+            className={cn(
+              "min-w-0 flex-1 rounded-sm text-left break-words outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring",
+              done && "text-muted-foreground line-through",
+            )}
+          >
+            {task.title}
+          </button>
+          {/* Выполненную задачу в план дня не добавляют. */}
+          {!done ? (
+            <div className="-mt-1 -mr-1">
+              <PlanTodayButton task={task} />
+            </div>
+          ) : null}
+        </div>
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
           <Select

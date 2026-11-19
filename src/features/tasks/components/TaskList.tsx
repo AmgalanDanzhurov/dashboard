@@ -1,9 +1,10 @@
 "use client";
 
 import { ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import { groupByDue } from "@/lib/domain/filters";
+import { groupToday } from "@/lib/domain/today";
 import type { Task } from "@/lib/domain/types";
 import { cn } from "@/lib/utils";
 
@@ -16,8 +17,11 @@ type Props = {
   /** Уже отфильтрованные и отсортированные задачи. */
   tasks: readonly Task[];
   data: TaskData;
-  /** true — невыполненные разбиты на группы по сроку. */
-  grouped: boolean;
+  /**
+   * Как разбить невыполненные: по сроку («Просрочено», «Сегодня», …),
+   * по группам страницы «Сегодня» или не разбивать (свой порядок, приоритет).
+   */
+  grouping: "due" | "today" | "none";
   showLocation: boolean;
   emptyText: string;
 };
@@ -29,12 +33,14 @@ type Props = {
 export function TaskList({
   tasks,
   data,
-  grouped,
+  grouping,
   showLocation,
   emptyText,
 }: Props) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [showDone, setShowDone] = useState(false);
+  // Префикс id заголовков: на одной странице бывает несколько списков.
+  const idPrefix = useId();
 
   const open = tasks.filter((t) => t.status !== "done");
   const done = tasks
@@ -42,6 +48,13 @@ export function TaskList({
     .sort((a, b) => (b.completed_at ?? "").localeCompare(a.completed_at ?? ""));
   // Открытая задача берётся из полного списка: она могла уйти из фильтра.
   const openTask = data.tasks.find((t) => t.id === openId) ?? null;
+
+  const groups =
+    grouping === "due"
+      ? groupByDue(open, data.today)
+      : grouping === "today"
+        ? groupToday(open, data.today)
+        : null;
 
   const row = (task: Task) => (
     <TaskRow
@@ -57,11 +70,11 @@ export function TaskList({
     <div className="flex flex-col gap-6">
       {open.length === 0 ? (
         <p className="text-sm text-muted-foreground">{emptyText}</p>
-      ) : grouped ? (
-        groupByDue(open, data.today).map((group) => (
-          <section key={group.key} aria-labelledby={`group-${group.key}`}>
+      ) : groups ? (
+        groups.map((group) => (
+          <section key={group.key} aria-labelledby={`${idPrefix}-${group.key}`}>
             <h3
-              id={`group-${group.key}`}
+              id={`${idPrefix}-${group.key}`}
               className={cn(
                 "text-sm font-medium",
                 group.key === "overdue" && "text-destructive",

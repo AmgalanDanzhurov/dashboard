@@ -76,7 +76,7 @@ export function TasksView() {
           <TaskList
             tasks={visible}
             data={data}
-            grouped={filters.sort === "due"}
+            grouping={filters.sort === "due" ? "due" : "none"}
             showLocation
             emptyText={
               data.tasks.length === 0

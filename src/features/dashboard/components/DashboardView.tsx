@@ -13,6 +13,7 @@ import { TaskList } from "@/features/tasks/components/TaskList";
 import { useTaskData } from "@/features/tasks/useTaskData";
 import { addDaysISO, daysFrom } from "@/lib/domain/dates";
 import { sortTasks } from "@/lib/domain/filters";
+import { todayGroupOf } from "@/lib/domain/today";
 import {
   completedByDay,
   countByStatus,
@@ -96,11 +97,11 @@ export function DashboardView() {
     active.filter((t) => t.status !== "done"),
     "due",
   );
-  const dueNow = open.filter(
-    (t) => t.due_date && daysFrom(today, t.due_date) <= 0,
-  );
+  // Сегодня — как на странице «Сегодня»: просрочка, срок сегодня и план дня.
+  const dueNow = open.filter((t) => todayGroupOf(t, today) !== null);
   const dueSoon = open.filter((t) => {
-    if (!t.due_date) return false;
+    // Уже показанные в «Сегодня» (например, в плане дня) не повторяем.
+    if (!t.due_date || todayGroupOf(t, today) !== null) return false;
     const days = daysFrom(today, t.due_date);
     return days >= 1 && days <= 7;
   });
@@ -133,13 +134,21 @@ export function DashboardView() {
           aria-labelledby="due-now-heading"
           className="flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-4"
         >
-          <h2 id="due-now-heading" className="font-medium">
-            Сегодня и просрочено
-          </h2>
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 id="due-now-heading" className="font-medium">
+              Сегодня
+            </h2>
+            <Link
+              href={routes.today}
+              className="text-sm text-muted-foreground hover:text-foreground hover:underline hover:underline-offset-4"
+            >
+              Открыть
+            </Link>
+          </div>
           <TaskList
             tasks={dueNow}
             data={data}
-            grouped
+            grouping="today"
             showLocation
             emptyText="На сегодня ничего не горит."
           />
@@ -154,7 +163,7 @@ export function DashboardView() {
           <TaskList
             tasks={dueSoon}
             data={data}
-            grouped
+            grouping="due"
             showLocation
             emptyText="На неделю вперёд сроков нет."
           />
