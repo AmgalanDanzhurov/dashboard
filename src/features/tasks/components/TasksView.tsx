@@ -56,7 +56,7 @@ export function TasksView() {
         location={quickAddLocation}
         placeholder={
           quickAddLocation.kind === "inbox"
-            ? "Новая задача во «Входящие» — Enter"
+            ? "Новая задача во «Входящие»"
             : undefined
         }
       />

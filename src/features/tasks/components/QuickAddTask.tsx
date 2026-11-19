@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { TaskLocation } from "@/lib/domain/location";
 
@@ -16,10 +17,14 @@ type Props = {
   placeholder?: string;
 };
 
-/** Быстрое добавление одной строкой: Enter — создать. */
+/**
+ * Быстрое добавление одной строкой: Enter или кнопка «Добавить».
+ * Кнопка нужна телефонам: на клавиатурах с подсказками слов Enter часто
+ * только подтверждает слово и не отправляет форму.
+ */
 export function QuickAddTask({
   location,
-  placeholder = "Новая задача — Enter, чтобы добавить",
+  placeholder = "Новая задача",
 }: Props) {
   const [title, setTitle] = useState("");
   const createTask = useCreateTask();
@@ -51,19 +56,31 @@ export function QuickAddTask({
   }
 
   return (
-    <form onSubmit={(e) => void submit(e)} className="relative">
-      <Plus
-        aria-hidden
-        className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-      />
-      <Input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder={placeholder}
-        aria-label="Новая задача"
-        maxLength={200}
-        className="pl-9"
-      />
+    <form onSubmit={(e) => void submit(e)} className="flex gap-2">
+      <div className="relative min-w-0 flex-1">
+        <Plus
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+        />
+        <Input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder={placeholder}
+          aria-label="Новая задача"
+          maxLength={200}
+          autoComplete="off"
+          // Клавиша Enter на телефонной клавиатуре подписана «Отправить».
+          enterKeyHint="send"
+          className="pl-9"
+        />
+      </div>
+      <Button
+        type="submit"
+        variant="secondary"
+        disabled={!title.trim() || createTask.isPending}
+      >
+        Добавить
+      </Button>
     </form>
   );
 }
