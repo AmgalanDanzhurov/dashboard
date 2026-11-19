@@ -158,6 +158,69 @@ begin
 end;
 $$;
 
+-- ─── Владелец: план дня и свой порядок ───────────────────────────────────────
+
+do $$
+declare
+  v_old double precision;
+  v_new double precision;
+  v_planned date;
+begin
+  -- Новая задача встаёт в конец своего порядка: её sort_order больше,
+  -- чем у задач, созданных раньше.
+  select max(sort_order) into v_old from public.tasks;
+  insert into public.tasks (id, title)
+  values ('d0000000-0000-4000-8000-000000000010', 'Новая в конец');
+  select sort_order into v_new from public.tasks
+  where id = 'd0000000-0000-4000-8000-000000000010';
+  assert v_new > v_old, 'sort_order новой задачи не больше прежних';
+
+  update public.tasks set planned_for = '2026-11-20'
+  where id = 'd0000000-0000-4000-8000-000000000010';
+  select planned_for into v_planned from public.tasks
+  where id = 'd0000000-0000-4000-8000-000000000010';
+  assert v_planned = '2026-11-20', 'planned_for не сохранился';
+end;
+$$;
+
+-- ─── Владелец: привычки ──────────────────────────────────────────────────────
+
+insert into public.habits (id, name, weekdays) values
+  ('e0000000-0000-4000-8000-000000000001', 'Бег', '{1,3,5}');
+
+insert into public.habit_checks (habit_id, day) values
+  ('e0000000-0000-4000-8000-000000000001', '2026-11-16'),
+  ('e0000000-0000-4000-8000-000000000001', '2026-11-18');
+
+do $$
+declare
+  v_count int;
+begin
+  select count(*) into v_count from public.habit_checks
+  where habit_id = 'e0000000-0000-4000-8000-000000000001';
+  assert v_count = 2, 'отметки привычки не сохранились';
+
+  begin
+    insert into public.habit_checks (habit_id, day)
+    values ('e0000000-0000-4000-8000-000000000001', '2026-11-16');
+    raise exception 'ПРОВАЛ: две отметки за один день';
+  exception when unique_violation then null;
+  end;
+
+  begin
+    insert into public.habits (name, weekdays) values ('Без дней', '{}');
+    raise exception 'ПРОВАЛ: привычка без дней недели сохранена';
+  exception when check_violation then null;
+  end;
+
+  begin
+    insert into public.habits (name, weekdays) values ('Восьмой день', '{1,8}');
+    raise exception 'ПРОВАЛ: привычка с днём недели 8 сохранена';
+  exception when check_violation then null;
+  end;
+end;
+$$;
+
 -- ─── Другой пользователь не видит и не трогает чужое ────────────────────────
 
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-000000000002","role":"authenticated"}';
@@ -173,8 +236,17 @@ begin
        + (select count(*) from public.task_tags)
        + (select count(*) from public.area_progress)
        + (select count(*) from public.project_progress)
+       + (select count(*) from public.habits)
+       + (select count(*) from public.habit_checks)
     into v_count;
   assert v_count = 0, format('Другой пользователь видит %s чужих строк', v_count);
+
+  begin
+    insert into public.habit_checks (habit_id, day)
+    values ('e0000000-0000-4000-8000-000000000001', '2026-11-20');
+    raise exception 'ПРОВАЛ: удалось отметить чужую привычку';
+  exception when insufficient_privilege then null;
+  end;
 
   begin
     insert into public.projects (area_id, name)
@@ -214,7 +286,8 @@ declare
   v_relation text;
 begin
   foreach v_relation in array array[
-    'areas', 'projects', 'tasks', 'tags', 'task_tags', 'area_progress', 'project_progress'
+    'areas', 'projects', 'tasks', 'tags', 'task_tags', 'area_progress', 'project_progress',
+    'habits', 'habit_checks'
   ] loop
     begin
       execute format('select count(*) from public.%I', v_relation);

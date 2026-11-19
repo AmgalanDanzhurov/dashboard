@@ -29,6 +29,8 @@ function task(overrides: Partial<Task> = {}): Task {
     completed_at: null,
     recurrence: null,
     series_id: null,
+    planned_for: null,
+    sort_order: seq,
     project_id: null,
     area_id: null,
     created_at: `2026-11-01T10:00:${String(seq).padStart(2, "0")}Z`,

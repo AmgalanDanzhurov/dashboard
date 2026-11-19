@@ -44,6 +44,68 @@ export type Database = {
         }
         Relationships: []
       }
+      habit_checks: {
+        Row: {
+          day: string
+          habit_id: string
+          user_id: string
+        }
+        Insert: {
+          day: string
+          habit_id: string
+          user_id?: string
+        }
+        Update: {
+          day?: string
+          habit_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_checks_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habits: {
+        Row: {
+          archived_at: string | null
+          color: string
+          created_at: string
+          id: string
+          name: string
+          position: number
+          updated_at: string
+          user_id: string
+          weekdays: number[]
+        }
+        Insert: {
+          archived_at?: string | null
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+          weekdays?: number[]
+        }
+        Update: {
+          archived_at?: string | null
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+          weekdays?: number[]
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           archived_at: string | null
@@ -154,10 +216,12 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          planned_for: string | null
           priority: Database["public"]["Enums"]["task_priority"]
           project_id: string | null
           recurrence: Json | null
           series_id: string | null
+          sort_order: number
           status: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at: string
@@ -170,10 +234,12 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          planned_for?: string | null
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id?: string | null
           recurrence?: Json | null
           series_id?: string | null
+          sort_order?: number
           status?: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at?: string
@@ -186,10 +252,12 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          planned_for?: string | null
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id?: string | null
           recurrence?: Json | null
           series_id?: string | null
+          sort_order?: number
           status?: Database["public"]["Enums"]["task_status"]
           title?: string
           updated_at?: string
