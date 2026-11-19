@@ -1,4 +1,5 @@
 import {
+  CalendarCheck,
   ChartColumn,
   Layers,
   LayoutDashboard,
@@ -27,6 +28,11 @@ const tasks: NavItem = {
   label: "Задачи",
   icon: ListChecks,
 };
+const habits: NavItem = {
+  href: routes.habits,
+  label: "Привычки",
+  icon: CalendarCheck,
+};
 const areas: NavItem = { href: routes.areas, label: "Разделы", icon: Layers };
 const stats: NavItem = {
   href: routes.stats,
@@ -44,6 +50,7 @@ export const navItems: readonly NavItem[] = [
   dashboard,
   today,
   tasks,
+  habits,
   areas,
   stats,
   settings,
@@ -57,6 +64,6 @@ export const mobilePrimaryItems: readonly NavItem[] = [
   dashboard,
   today,
   tasks,
-  areas,
+  habits,
 ];
-export const mobileMoreItems: readonly NavItem[] = [stats, settings];
+export const mobileMoreItems: readonly NavItem[] = [areas, stats, settings];

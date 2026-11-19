@@ -15,6 +15,11 @@ export const queryKeys = {
     all: ["tasks"] as const,
     list: () => [...queryKeys.tasks.all, "list"] as const,
   },
+  habits: {
+    all: ["habits"] as const,
+    list: () => [...queryKeys.habits.all, "list"] as const,
+    checks: () => [...queryKeys.habits.all, "checks"] as const,
+  },
   tags: {
     all: ["tags"] as const,
     list: () => [...queryKeys.tags.all, "list"] as const,

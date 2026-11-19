@@ -6,6 +6,8 @@ import type { Enums, Tables } from "@/lib/supabase/database.types";
 export type Area = Tables<"areas">;
 export type Project = Tables<"projects">;
 export type Tag = Tables<"tags">;
+export type Habit = Tables<"habits">;
+export type HabitCheck = Tables<"habit_checks">;
 
 export type TaskStatus = Enums<"task_status">;
 export type TaskPriority = Enums<"task_priority">;
